@@ -45,26 +45,43 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
 
   const handleShare = async () => {
     try {
-      if (navigator.share) {
-        const blob = await (await fetch(qrCode)).blob();
-        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-        await navigator.share({
-          title: 'QR Code',
-          text: 'Check out this QR code!',
-          url: url,
-          files: [file]
-        });
-        toast.success("QR code shared successfully!");
-      } else {
+      if (!navigator.share) {
         await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard!");
+        toast.success("URL copied to clipboard since sharing is not supported!");
+        return;
       }
+
+      const blob = await (await fetch(qrCode)).blob();
+      const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+      
+      await navigator.share({
+        title: 'QR Code',
+        text: 'Check out this QR code!',
+        url: url,
+        files: [file]
+      }).catch((error) => {
+        // If file sharing fails, try sharing just the URL
+        if (error.name === 'NotAllowedError') {
+          return navigator.share({
+            title: 'QR Code',
+            text: 'Check out this QR code!',
+            url: url
+          });
+        }
+        throw error;
+      });
+      
+      toast.success("QR code shared successfully!");
     } catch (err) {
-      if (err instanceof Error && err.name === 'NotAllowedError') {
-        toast.error("Share was cancelled");
-      } else {
-        toast.error("Failed to share QR code");
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          // User cancelled the share, don't show error toast
+          return;
+        }
       }
+      // Fallback to clipboard
+      await navigator.clipboard.writeText(url);
+      toast.success("URL copied to clipboard!");
     }
   };
 
