@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import QRCode from 'qrcode';
-import { saveToHistory } from '@/utils/storage';
 import { Share2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,14 +21,7 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
           light: '#FFFFFF',
         },
       });
-      
       setQrCode(qrDataUrl);
-      saveToHistory({
-        id: Date.now().toString(),
-        url,
-        createdAt: new Date().toISOString(),
-        qrCode: qrDataUrl,
-      });
     } catch (err) {
       toast.error("Failed to generate QR code");
     }
@@ -46,13 +38,10 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
   const handleShare = async () => {
     try {
       if (navigator.share) {
-        const blob = await (await fetch(qrCode)).blob();
-        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
         await navigator.share({
           title: 'QR Code',
           text: 'Check out this QR code!',
-          url: url,
-          files: [file]
+          url: url
         });
         toast.success("QR code shared successfully!");
       } else {
@@ -60,10 +49,11 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
         toast.success("URL copied to clipboard!");
       }
     } catch (err) {
-      if (err instanceof Error && err.name === 'NotAllowedError') {
+      if (err instanceof Error && err.name === 'AbortError') {
         toast.error("Share was cancelled");
       } else {
-        toast.error("Failed to share QR code");
+        await navigator.clipboard.writeText(url);
+        toast.success("URL copied to clipboard!");
       }
     }
   };
