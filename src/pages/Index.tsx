@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import URLInput from '@/components/URLInput';
 import QRGenerator from '@/components/QRGenerator';
+import RecentQRCodes from '@/components/RecentQRCodes';
+import { getHistory, QRCodeHistory } from '@/utils/storage';
 import { checkUrlReachability } from '@/utils/validation';
 import { toast } from 'sonner';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -8,6 +10,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 const Index = () => {
   const [url, setUrl] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [history, setHistory] = useState<QRCodeHistory[]>(getHistory());
 
   const handleSubmit = async (inputUrl: string) => {
     setIsLoading(true);
@@ -27,6 +30,11 @@ const Index = () => {
 
   const handleReset = () => {
     setUrl('');
+    setHistory(getHistory());
+  };
+
+  const handleHistorySelect = (item: QRCodeHistory) => {
+    setUrl(item.url);
   };
 
   return (
@@ -47,6 +55,8 @@ const Index = () => {
         ) : (
           <QRGenerator url={url} onReset={handleReset} />
         )}
+
+        <RecentQRCodes history={history} onSelect={handleHistorySelect} />
       </div>
     </div>
   );
