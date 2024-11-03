@@ -37,44 +37,24 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
 
   const handleShare = async () => {
     try {
-      if (!navigator.share) {
-        await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard - sharing not supported on this device");
-        return;
-      }
-
-      if (!qrCode) {
-        toast.error("No QR code to share");
-        return;
-      }
-
-      // First try sharing with just the URL and text
-      try {
+      if (navigator.share) {
+        const blob = await (await fetch(qrCode)).blob();
+        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
         await navigator.share({
           title: 'QR Code',
           text: 'Check out this QR code!',
-          url: url
+          url: url,
+          files: [file]
         });
         toast.success("QR code shared successfully!");
-        return;
-      } catch (err) {
-        // If sharing with URL fails, try sharing the image file
-        const response = await fetch(qrCode);
-        const blob = await response.blob();
-        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-
-        await navigator.share({
-          files: [file],
-          title: 'QR Code',
-          text: 'Check out this QR code!'
-        });
-        toast.success("QR code shared successfully!");
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.success("URL copied to clipboard!");
       }
     } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
+      if (err instanceof Error && err.name === 'NotAllowedError') {
         toast.error("Share was cancelled");
       } else {
-        console.error('Sharing failed:', err);
         toast.error("Failed to share QR code");
       }
     }
