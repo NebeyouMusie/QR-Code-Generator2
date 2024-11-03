@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import QRCode from 'qrcode';
-import { saveToHistory } from '@/utils/storage';
 import { Share2, Download } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -22,14 +21,7 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
           light: '#FFFFFF',
         },
       });
-      
       setQrCode(qrDataUrl);
-      saveToHistory({
-        id: Date.now().toString(),
-        url,
-        createdAt: new Date().toISOString(),
-        qrCode: qrDataUrl,
-      });
     } catch (err) {
       toast.error("Failed to generate QR code");
     }
