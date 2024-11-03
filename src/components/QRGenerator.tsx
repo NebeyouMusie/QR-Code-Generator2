@@ -35,31 +35,6 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
     toast.success("QR code downloaded successfully!");
   };
 
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        const blob = await (await fetch(qrCode)).blob();
-        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-        await navigator.share({
-          title: 'QR Code',
-          text: 'Check out this QR code!',
-          url: url,
-          files: [file]
-        });
-        toast.success("QR code shared successfully!");
-      } else {
-        await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard!");
-      }
-    } catch (err) {
-      if (err instanceof Error && err.name === 'NotAllowedError') {
-        toast.error("Share was cancelled");
-      } else {
-        toast.error("Failed to share QR code");
-      }
-    }
-  };
-
   // Generate QR code on mount
   useState(() => {
     generateQR();
@@ -81,13 +56,6 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
             >
               <Download size={20} />
               Download
-            </button>
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors"
-            >
-              <Share2 size={20} />
-              Share
             </button>
           </div>
           <button
