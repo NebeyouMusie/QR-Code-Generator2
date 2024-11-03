@@ -48,12 +48,13 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
       const blob = await response.blob();
       const file = new File([blob], 'qrcode.png', { type: 'image/png' });
 
-      await navigator.share({
+      const shareData = {
         files: [file],
         title: 'QR Code',
         text: 'Check out this QR code!',
-      });
-      
+      };
+
+      await navigator.share(shareData);
       toast.success("QR code shared successfully!");
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {

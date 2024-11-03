@@ -11,13 +11,10 @@ export const checkUrlReachability = async (url: string): Promise<boolean> => {
   try {
     const response = await fetch(url, { 
       method: 'HEAD',
-      mode: 'no-cors' // This allows the request but makes the response opaque
+      mode: 'cors'  // Changed from 'no-cors' to 'cors' to actually check reachability
     });
-    // Since we're using no-cors, we'll assume the URL is valid if we get here
-    return true;
+    return response.ok;
   } catch {
-    // If there's a network error or other issue, we'll still return true
-    // as long as the URL structure is valid
-    return isValidUrl(url);
+    return false;  // Return false if there's any error reaching the URL
   }
 };
