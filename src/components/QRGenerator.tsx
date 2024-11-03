@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import QRCode from 'qrcode';
-import { Share2, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface QRGeneratorProps {
@@ -12,19 +12,15 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
   const [qrCode, setQrCode] = useState<string>('');
 
   const generateQR = async () => {
-    try {
-      const qrDataUrl = await QRCode.toDataURL(url, {
-        width: 400,
-        margin: 2,
-        color: {
-          dark: '#4F46E5',
-          light: '#FFFFFF',
-        },
-      });
-      setQrCode(qrDataUrl);
-    } catch (err) {
-      toast.error("Failed to generate QR code");
-    }
+    const qrDataUrl = await QRCode.toDataURL(url, {
+      width: 400,
+      margin: 2,
+      color: {
+        dark: '#4F46E5',
+        light: '#FFFFFF',
+      },
+    });
+    setQrCode(qrDataUrl);
   };
 
   const handleDownload = () => {
@@ -33,36 +29,6 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
     link.href = qrCode;
     link.click();
     toast.success("QR code downloaded successfully!");
-  };
-
-  const handleShare = async () => {
-    try {
-      if (!navigator.share) {
-        await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard - sharing not supported on this device");
-        return;
-      }
-
-      // Convert base64 to blob
-      const response = await fetch(qrCode);
-      const blob = await response.blob();
-      const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-
-      await navigator.share({
-        files: [file],
-        title: 'QR Code',
-        text: 'Check out this QR code!',
-      });
-      
-      toast.success("QR code shared successfully!");
-    } catch (err) {
-      if (err instanceof Error && err.name === 'AbortError') {
-        toast.error("Share was cancelled");
-      } else {
-        console.error('Sharing failed:', err);
-        toast.error("Failed to share QR code");
-      }
-    }
   };
 
   // Generate QR code on mount
@@ -86,13 +52,6 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
             >
               <Download size={20} />
               Download
-            </button>
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary text-white rounded-lg hover:bg-secondary/90 transition-colors"
-            >
-              <Share2 size={20} />
-              Share
             </button>
           </div>
           <button
