@@ -37,29 +37,30 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
 
   const handleShare = async () => {
     try {
-      if (navigator.share) {
-        // Convert base64 to blob
-        const response = await fetch(qrCode);
-        const blob = await response.blob();
-        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
-
-        await navigator.share({
-          title: 'QR Code',
-          text: 'Check out this QR code!',
-          url: url,
-          files: [file]
-        });
-        toast.success("QR code shared successfully!");
-      } else {
+      if (!navigator.share) {
         await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard!");
+        toast.success("URL copied to clipboard - sharing not supported on this device");
+        return;
       }
+
+      // Convert base64 to blob
+      const response = await fetch(qrCode);
+      const blob = await response.blob();
+      const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+
+      await navigator.share({
+        files: [file],
+        title: 'QR Code',
+        text: 'Check out this QR code!',
+      });
+      
+      toast.success("QR code shared successfully!");
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         toast.error("Share was cancelled");
       } else {
-        await navigator.clipboard.writeText(url);
-        toast.success("URL copied to clipboard!");
+        console.error('Sharing failed:', err);
+        toast.error("Failed to share QR code");
       }
     }
   };
