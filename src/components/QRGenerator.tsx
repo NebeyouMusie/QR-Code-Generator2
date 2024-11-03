@@ -43,19 +43,33 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
         return;
       }
 
-      // Convert base64 to blob
-      const response = await fetch(qrCode);
-      const blob = await response.blob();
-      const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+      if (!qrCode) {
+        toast.error("No QR code to share");
+        return;
+      }
 
-      const shareData = {
-        files: [file],
-        title: 'QR Code',
-        text: 'Check out this QR code!',
-      };
+      // First try sharing with just the URL and text
+      try {
+        await navigator.share({
+          title: 'QR Code',
+          text: 'Check out this QR code!',
+          url: url
+        });
+        toast.success("QR code shared successfully!");
+        return;
+      } catch (err) {
+        // If sharing with URL fails, try sharing the image file
+        const response = await fetch(qrCode);
+        const blob = await response.blob();
+        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
 
-      await navigator.share(shareData);
-      toast.success("QR code shared successfully!");
+        await navigator.share({
+          files: [file],
+          title: 'QR Code',
+          text: 'Check out this QR code!'
+        });
+        toast.success("QR code shared successfully!");
+      }
     } catch (err) {
       if (err instanceof Error && err.name === 'AbortError') {
         toast.error("Share was cancelled");
