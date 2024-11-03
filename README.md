@@ -1,4 +1,4 @@
-# Welcome to your GPT Engineer project
+# QR Code Generator2
 
 ## Project info
 
