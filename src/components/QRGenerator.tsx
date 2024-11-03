@@ -38,10 +38,16 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
   const handleShare = async () => {
     try {
       if (navigator.share) {
+        // Convert base64 to blob
+        const response = await fetch(qrCode);
+        const blob = await response.blob();
+        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
+
         await navigator.share({
           title: 'QR Code',
           text: 'Check out this QR code!',
-          url: url
+          url: url,
+          files: [file]
         });
         toast.success("QR code shared successfully!");
       } else {
