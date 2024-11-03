@@ -46,17 +46,25 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
   const handleShare = async () => {
     try {
       if (navigator.share) {
+        const blob = await (await fetch(qrCode)).blob();
+        const file = new File([blob], 'qrcode.png', { type: 'image/png' });
         await navigator.share({
           title: 'QR Code',
           text: 'Check out this QR code!',
           url: url,
+          files: [file]
         });
+        toast.success("QR code shared successfully!");
       } else {
         await navigator.clipboard.writeText(url);
         toast.success("URL copied to clipboard!");
       }
     } catch (err) {
-      toast.error("Failed to share QR code");
+      if (err instanceof Error && err.name === 'NotAllowedError') {
+        toast.error("Share was cancelled");
+      } else {
+        toast.error("Failed to share QR code");
+      }
     }
   };
 
@@ -66,7 +74,7 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
   });
 
   return (
-    <div className="qr-container animate-fadeIn">
+    <div className="qr-container animate-fadeIn dark:bg-gray-800 dark:from-gray-800 dark:to-gray-900">
       {qrCode && (
         <>
           <img
@@ -92,7 +100,7 @@ const QRGenerator = ({ url, onReset }: QRGeneratorProps) => {
           </div>
           <button
             onClick={onReset}
-            className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+            className="mt-4 text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
           >
             Generate another QR code
           </button>
