@@ -1,4 +1,4 @@
-# QR Code Generator2
+# QR Code Generator
 
 ## Project info
 
